@@ -571,6 +571,21 @@ describe("MemoryRouter", () => {
           expect(memoryRouter.asPath).toEqual("/three");
           expect(memoryRouter.history.index).toEqual(1); // replace does not add a new entry
         });
+
+        it("back", async () => {
+          const history = createMemoryHistory({ initialEntries: ["/one"] });
+          memoryRouter.setCurrentHistory(history);
+          expect(memoryRouter.asPath).toEqual("/one");
+          expect(memoryRouter.history.index).toEqual(0);
+
+          await memoryRouter.push("/two");
+          expect(memoryRouter.asPath).toEqual("/two");
+          expect(memoryRouter.history.index).toEqual(1);
+
+          memoryRouter.back();
+          expect(memoryRouter.asPath).toEqual("/one");
+          expect(memoryRouter.history.index).toEqual(0);
+        });
       });
 
       it('the "registerPaths" method is deprecated', async () => {

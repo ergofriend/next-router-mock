@@ -31,14 +31,16 @@ type InternalEventTypes =
   /** Emitted when 'router.push' is called */
   | "NEXT_ROUTER_MOCK:push"
   /** Emitted when 'router.replace' is called */
-  | "NEXT_ROUTER_MOCK:replace";
+  | "NEXT_ROUTER_MOCK:replace"
+  /** Emitted when 'router.back' is called */
+  | "NEXT_ROUTER_MOCK:back";
 
 type RouterState = {
   asPath: string;
   pathname: string;
   query: NextRouter["query"];
   hash: string;
-  locale?: string;
+  locale?: string | false | undefined;
 };
 
 /**
@@ -74,9 +76,7 @@ export abstract class BaseRouter implements NextRouter {
 
   abstract push(url: Url, as?: Url, options?: TransitionOptions): Promise<boolean>;
   abstract replace(url: Url): Promise<boolean>;
-  back() {
-    // Not implemented
-  }
+  abstract back(): void;
   forward() {
     // Not implemented
   }
@@ -147,6 +147,10 @@ export class MemoryRouter extends BaseRouter {
     return this._setCurrentUrl(url, as, options, "replace");
   };
 
+  back = () => {
+    this._back();
+  };
+
   /**
    * Sets the current MemoryHistory.
    */
@@ -192,7 +196,7 @@ export class MemoryRouter extends BaseRouter {
   /**
    * Store the current MemoryHistory state to history.state for the next location.
    */
-  private _updateHistory(source?: "push" | "replace" | "set") {
+  private _updateHistory(source?: "push" | "replace" | "back" | "set") {
     switch (source) {
       case "push":
         this._history.push(this._state.asPath, this._state);
@@ -203,7 +207,9 @@ export class MemoryRouter extends BaseRouter {
       case "set":
         this._history = createMemoryHistory({ initialEntries: [this._state.asPath] });
         break;
-      // TODO: support back
+      case "back":
+        this._history.back();
+        break;
     }
   }
 
@@ -217,12 +223,33 @@ export class MemoryRouter extends BaseRouter {
     };
   }
 
+  private set _state(state: RouterState) {
+    this.asPath = state.asPath;
+    this.pathname = state.pathname;
+    this.query = state.query;
+    this.hash = state.hash;
+    if (state.locale) this.locale = state.locale;
+  }
+
   private _updateState(asPath: string, route: UrlObjectComplete, locale: TransitionOptions["locale"]) {
-    this.asPath = asPath;
-    this.pathname = route.pathname;
-    this.query = { ...route.query, ...route.routeParams };
-    this.hash = route.hash;
-    if (locale) this.locale = locale;
+    this._state = {
+      asPath,
+      pathname: route.pathname,
+      query: { ...route.query, ...route.routeParams },
+      hash: route.hash,
+      locale,
+    };
+  }
+
+  private _getPreviousState() {
+    const state = this._history.location.state as RouterState;
+    return {
+      asPath: state.asPath,
+      pathname: state.pathname,
+      query: state.query,
+      hash: state.hash,
+      locale: state.locale,
+    };
   }
 
   /**
@@ -290,6 +317,15 @@ export class MemoryRouter extends BaseRouter {
     if (eventName) this.events.emit(eventName, this.asPath, { shallow });
 
     return true;
+  }
+
+  private _back() {
+    const previousState = this._getPreviousState();
+    this.events.emit("routeChangeStart", previousState.asPath);
+    this._state = previousState;
+    this._updateHistory("back");
+    this.events.emit("routeChangeComplete", previousState.asPath);
+    this.events.emit("NEXT_ROUTER_MOCK:back", previousState.asPath);
   }
 }
 
