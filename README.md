@@ -304,7 +304,6 @@ These fields just have default values; these methods do nothing.
 - `router.defaultLocale`
 - `router.domainLocales`
 - `router.prefetch()`
-- `router.back()`
 - `router.beforePopState(cb)`
 - `router.reload()`
 - `router.events` not implemented:

@@ -16,6 +16,7 @@ describe("next-overridable-hook", () => {
       async: expect.any(Boolean),
       push: expect.any(Function),
       replace: expect.any(Function),
+      back: expect.any(Function),
       setCurrentUrl: expect.any(Function),
       setCurrentHistory: expect.any(Function),
       registerPaths: expect.any(Function),
