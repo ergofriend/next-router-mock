@@ -1,5 +1,9 @@
-
 # `next-router-mock`
+
+Fork from:
+1. https://github.com/scottrippey/next-router-mock
+1. https://github.com/ergofriend/next-router-mock/tree/add-history-support
+
 
 An implementation of the Next.js Router that keeps the state of the "URL" in memory (does not read or write to the
 address bar).  Useful in **tests** and **Storybook**. 
@@ -279,6 +283,7 @@ it('next/link can be tested too', async () => {
 - `withRouter(Component)`
 - `router.push(url, as?, options?)`
 - `router.replace(url, as?, options?)`
+- `router.back()`
 - `router.route`
 - `router.pathname`
 - `router.asPath`
@@ -304,7 +309,6 @@ These fields just have default values; these methods do nothing.
 - `router.defaultLocale`
 - `router.domainLocales`
 - `router.prefetch()`
-- `router.back()`
 - `router.beforePopState(cb)`
 - `router.reload()`
 - `router.events` not implemented:
